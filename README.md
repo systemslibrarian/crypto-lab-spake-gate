@@ -13,7 +13,7 @@ A **PAKE** (Password-Authenticated Key Exchange) turns a shared password into a 
 
 On a good day the two are indistinguishable — same handshake, same session key. The difference only appears when the server's database leaks:
 
-- Steal a **SPAKE2** database → you have `w`, and `w` is everything the client uses. You **are** the client, permanently, with **no cracking**.
+- Steal a **SPAKE2** database → you have `w`, and `w` is everything the client uses on this service. You **are** the client, permanently, with **no cracking**. (The plaintext password isn't directly exposed — `w` is a PBKDF2 image — so reuse on *other* sites still needs an offline crack; but impersonation *here* needs none.)
 - Steal a **SPAKE2+** database → you have `(w0, L)`. You cannot impersonate the client without `w1`, so you are **forced into an offline dictionary attack** on the password. A weak password falls; a strong one holds.
 
 **Precision that matters:** SPAKE2+ does **not** prevent an offline attack — it *forces* one. Augmentation buys work, not immunity.
@@ -43,7 +43,7 @@ Type a password, steal both databases, and run the offline attack. Everything ru
 
 ## What Can Go Wrong
 
-- **Malleable M/N.** If M and N had a known discrete-log relationship, the mask could be removed and the password recovered. This is why they are fixed, seed-derived, and public.
+- **Trapdoored M/N.** If anyone knew the discrete log of M or N with respect to the base point P (a scalar `m*` with `M = m*·P`), a malicious server or man-in-the-middle could convert its single online guess per session into an unlimited *offline* dictionary attack. This is why M and N are fixed, seed-derived by hash-to-curve, and public — so no such discrete log is known to anyone.
 - **Weak passwords.** Against a stolen SPAKE2+ record, a dictionary word is recovered in milliseconds. The augmented record only raises the cost from *zero* (SPAKE2) to *one offline guess per candidate* (SPAKE2+).
 - **Low KDF cost.** This demo uses a deliberately low PBKDF2 iteration count so the attack is visible in a tab. Real deployments use a per-record salt and far more iterations, slowing the attacker — but not changing which side can be impersonated.
 - **Balanced storage of many users' `w`.** Using SPAKE2 as a server login scheme means the database *is* the set of every user's credential.

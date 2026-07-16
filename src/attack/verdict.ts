@@ -44,7 +44,7 @@ export function spake2LeakOutcome(): SeparatedOutcome {
       state: 'compromised',
       label: 'IMPERSONATED',
       detail:
-        'The server stored w, and w is everything the client uses. The thief is now indistinguishable from the user — no password was ever cracked.',
+        'The server stored w, and w is everything the client uses on this service. The thief is now indistinguishable from the user — no password was cracked. (The plaintext password stays behind PBKDF2, so reuse elsewhere still needs a crack; but impersonation here needs none.)',
     },
   }
 }

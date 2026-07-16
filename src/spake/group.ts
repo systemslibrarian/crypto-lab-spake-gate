@@ -22,10 +22,12 @@ export const P: Point = p256.ProjectivePoint.BASE
 //
 // These are FIXED public points, identical across both protocols. They are the
 // output of hashing the P-256 object identifier with a fixed seed string, so no
-// one — not even the spec authors — knows a scalar relating M to N. If someone
-// DID know m such that N = m·M, they could unmask shares and break the protocol.
-// The compressed encodings below are copied verbatim from the RFCs; we decode
-// and immediately re-check they are valid curve points at module load.
+// one — not even the spec authors — knows the discrete log of M or N with
+// respect to the base point P (no m* with M = m*·P, no n* with N = n*·P). A known
+// such discrete log would let a malicious server/MITM turn one online guess into
+// an offline dictionary attack, breaking the protocol. The compressed encodings
+// below are copied verbatim from the RFCs; we decode and immediately re-check
+// they are valid curve points at module load.
 // ---------------------------------------------------------------------------
 
 export const M_SEED = '1.2.840.10045.3.1.7 point generation seed (M)'
@@ -102,7 +104,7 @@ export function concatBytes(...arrays: Uint8Array[]): Uint8Array {
   return out
 }
 
-/** Constant-time-ish byte equality (length-independent short-circuit removed). */
+/** Length-checked, then constant-time over equal-length inputs. */
 export function bytesEqual(a: Uint8Array, b: Uint8Array): boolean {
   if (a.length !== b.length) return false
   let diff = 0

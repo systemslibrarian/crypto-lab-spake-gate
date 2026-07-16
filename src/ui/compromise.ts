@@ -101,6 +101,11 @@ function renderOutcome(outcome: SeparatedOutcome): HTMLElement {
 
 const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms))
 
+// Per-candidate pacing makes the grind legible; honor reduced-motion by dropping it.
+function stepDelay(): number {
+  return window.matchMedia?.('(prefers-reduced-motion: reduce)').matches ? 0 : 110
+}
+
 export function buildCompromisePanel(): HTMLElement {
   const salt = bytesToHex(scalarToBytes32(randomScalar())).slice(0, 16)
   let password = WEAK_EXAMPLE
@@ -186,20 +191,18 @@ export function buildCompromisePanel(): HTMLElement {
   }
 
   function resetAfterEdit(): void {
-    stolen = false
-    balancedOutcome.textContent = ''
-    augmentedOutcome.textContent = ''
-    attackLog.textContent = ''
-    attackWrap.hidden = true
-    stealBtn.textContent = '🔓 Steal both server databases'
-    stealBtn.classList.remove('armed')
+    resetSteal()
     renderStores()
   }
 
   function doSteal(): void {
     stolen = true
-    stealBtn.textContent = '🔓 Databases stolen — records are now the attacker’s'
+    stealBtn.textContent = '🔓 Databases stolen'
     stealBtn.classList.add('armed')
+    stealBtn.toggleAttribute('disabled', true)
+    resetBtn.hidden = false
+    balancedCol.classList.add('is-stolen')
+    augmentedCol.classList.add('is-stolen')
 
     // SPAKE2 (balanced): the stolen w is the client. Prove impersonation now.
     const { w, plus } = currentRecords()
@@ -220,6 +223,13 @@ export function buildCompromisePanel(): HTMLElement {
         }),
       ]),
       renderOutcome(spake2LeakOutcome()),
+      // Fill the balanced column's space with the lesson, not emptiness:
+      el('div', { class: 'nothing-to-crack' }, [
+        el('span', { class: 'ntc-icon', 'aria-hidden': 'true', text: '∎' }),
+        el('span', {
+          text: 'No attack to run here. The stolen w already logs in — there is nothing left to crack. Compare that with the panel on the right.',
+        }),
+      ]),
     )
 
     // SPAKE2+ (augmented): cannot impersonate yet. Offer the offline attack.
@@ -270,7 +280,7 @@ export function buildCompromisePanel(): HTMLElement {
       ])
       attackLog.append(row)
       attackLog.scrollTop = attackLog.scrollHeight
-      await sleep(110)
+      await sleep(stepDelay())
       if (attempt.matched) {
         matchedRow = row
         // Confirm the recovered w1 truly impersonates: w1·P === stolen L.
@@ -303,6 +313,7 @@ export function buildCompromisePanel(): HTMLElement {
     }
 
     attackBtn.toggleAttribute('disabled', false)
+    attackBtn.textContent = 'Re-run the attack'
     attackRunning = false
   }
 
@@ -335,6 +346,41 @@ export function buildCompromisePanel(): HTMLElement {
     resetAfterEdit()
   })
 
+  const balancedCol = el('div', { class: 'compromise-col' }, [
+    el('h3', { class: 'col-title', text: 'SPAKE2 · balanced' }),
+    balancedStore,
+    balancedOutcome,
+  ])
+  const augmentedCol = el('div', { class: 'compromise-col' }, [
+    el('h3', { class: 'col-title', text: 'SPAKE2+ · augmented' }),
+    augmentedStore,
+    augmentedOutcome,
+    attackWrap,
+  ])
+
+  const resetBtn = el('button', {
+    class: 'btn',
+    type: 'button',
+    text: '↺ Reset',
+    hidden: true,
+  })
+  resetBtn.addEventListener('click', () => resetSteal())
+
+  function resetSteal(): void {
+    stolen = false
+    balancedOutcome.textContent = ''
+    augmentedOutcome.textContent = ''
+    attackLog.textContent = ''
+    attackWrap.hidden = true
+    balancedCol.classList.remove('is-stolen')
+    augmentedCol.classList.remove('is-stolen')
+    stealBtn.textContent = '🔓 Steal both server databases'
+    stealBtn.classList.remove('armed')
+    stealBtn.toggleAttribute('disabled', false)
+    resetBtn.hidden = true
+    attackBtn.textContent = 'Run the offline dictionary attack'
+  }
+
   const panel = el('div', { class: 'compromise' }, [
     el('div', { class: 'pw-controls' }, [
       el('label', { class: 'pw-label', for: 'pw-input', text: 'The user’s password' }),
@@ -345,20 +391,8 @@ export function buildCompromisePanel(): HTMLElement {
       class: 'pw-hint',
       text: 'Both servers register this exact password. Then steal both databases and see what the thief can do.',
     }),
-    el('div', { class: 'compromise-grid' }, [
-      el('div', { class: 'compromise-col' }, [
-        el('h3', { class: 'col-title', text: 'SPAKE2 · balanced' }),
-        balancedStore,
-        balancedOutcome,
-      ]),
-      el('div', { class: 'compromise-col' }, [
-        el('h3', { class: 'col-title', text: 'SPAKE2+ · augmented' }),
-        augmentedStore,
-        augmentedOutcome,
-        attackWrap,
-      ]),
-    ]),
-    el('div', { class: 'steal-bar' }, [stealBtn]),
+    el('div', { class: 'compromise-grid' }, [balancedCol, augmentedCol]),
+    el('div', { class: 'steal-bar' }, [stealBtn, resetBtn]),
   ])
 
   attackWrap.append(

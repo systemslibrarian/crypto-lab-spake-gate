@@ -1,5 +1,7 @@
 import './style.css'
 import { el, section } from './ui/dom.ts'
+import { buildKatPanel } from './ui/kat.ts'
+import { buildGoodDayPanel } from './ui/goodday.ts'
 import { buildMaskAnimation } from './ui/maskAnim.ts'
 import { buildConstantsPanel } from './ui/constants.ts'
 import { buildCompromisePanel } from './ui/compromise.ts'
@@ -72,8 +74,16 @@ const scoping = el('section', { id: 'scope', class: 'card scoping-card', 'aria-l
     el('li', { role: 'listitem', html: '<strong>What it does NOT prove.</strong> It does not prove SPAKE2+ (or OPAQUE) makes leaks harmless — a weak password still falls to offline guessing. Augmentation buys work, not immunity.' }),
   ]),
 ])
+scoping.append(buildKatPanel())
 
 // section builders
+const goodday = section(
+  'goodday',
+  'A good day: the two look identical',
+  'Register one password on a balanced server and an augmented one, then run an honest login on each. Same handshake shape, both succeed — the difference is invisible from the outside.',
+)
+goodday.body.append(buildGoodDayPanel())
+
 const mask = section(
   'mask',
   'The M / N mask, stepped',
@@ -84,14 +94,14 @@ mask.body.append(buildMaskAnimation())
 const constants = section(
   'constants',
   'Why M and N are nothing-up-my-sleeve',
-  'The mask uses two fixed public points. Security depends on nobody knowing how they relate. Here they are, and here is the rule.',
+  'The mask uses two fixed public points. Security depends on nobody knowing their discrete logs. Here they are, and here is the exact requirement.',
 )
 constants.body.append(buildConstantsPanel())
 
 const compromise = section(
   'compromise',
-  'Steal the database — the whole point',
-  'One password, registered on a balanced server and an augmented one. Take both databases and see what the thief can actually do. This runs against the real primitive: you cause the failure.',
+  'The bad day: steal the database',
+  'The same login you just watched succeed on both — now take both databases and watch the outcomes diverge. This runs against the real primitive: you cause the failure.',
 )
 compromise.body.append(buildCompromisePanel())
 
@@ -112,6 +122,7 @@ matter.body.append(buildMatterPanel())
 const main = el('main', { class: 'content' }, [
   intro,
   scoping,
+  goodday.root,
   mask.root,
   constants.root,
   compromise.root,

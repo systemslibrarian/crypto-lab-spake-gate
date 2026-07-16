@@ -29,15 +29,38 @@ export function shortHex(hex: string, head = 10, tail = 8): string {
   return `${hex.slice(0, head)}…${hex.slice(-tail)}`
 }
 
-/** A monospace hex chip that shows the full value on hover/focus. */
+/**
+ * A monospace hex chip: shows a truncated value, the full value on hover/focus,
+ * and copies the full value to the clipboard on click or Enter/Space. It is a
+ * real <button> so it is keyboard-operable and announced correctly.
+ */
 export function hexChip(hex: string, label?: string): HTMLElement {
-  const chip = el('code', {
+  const shown = shortHex(hex)
+  const chip = el('button', {
+    type: 'button',
     class: 'hex',
-    title: hex,
-    tabindex: '0',
-    'aria-label': label ? `${label}: ${hex}` : hex,
+    title: `${hex}\n(click to copy)`,
+    'aria-label': `Copy ${label ? label + ': ' : ''}${hex}`,
   })
-  chip.textContent = shortHex(hex)
+  chip.textContent = shown
+  let resetTimer: ReturnType<typeof setTimeout> | undefined
+  chip.addEventListener('click', () => {
+    const restore = () => {
+      chip.textContent = shown
+      chip.classList.remove('copied')
+    }
+    const ok = () => {
+      chip.textContent = 'copied ✓'
+      chip.classList.add('copied')
+      if (resetTimer) clearTimeout(resetTimer)
+      resetTimer = setTimeout(restore, 1100)
+    }
+    if (navigator.clipboard?.writeText) {
+      navigator.clipboard.writeText(hex).then(ok).catch(() => {})
+    } else {
+      ok()
+    }
+  })
   return chip
 }
 

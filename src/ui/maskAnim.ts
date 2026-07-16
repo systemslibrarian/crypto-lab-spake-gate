@@ -142,6 +142,7 @@ export function buildMaskAnimation(): HTMLElement {
   const counter = el('span', { class: 'step-counter', 'aria-hidden': 'true' })
   const prev = el('button', { class: 'btn', type: 'button', text: '‹ Back' })
   const next = el('button', { class: 'btn btn-primary', type: 'button', text: 'Next ›' })
+  const restart = el('button', { class: 'btn', type: 'button', text: '↺ Start over' })
   const reroll = el('button', {
     class: 'btn',
     type: 'button',
@@ -192,8 +193,12 @@ export function buildMaskAnimation(): HTMLElement {
     svg.append(defs)
 
     const s = step.show
-    if (s.has('maskA') && (s.has('pA') || s.has('recovered'))) {
-      drawMaskVector(run.X, run.pA, s.has('recovered') ? 'undo' : 'add')
+    if (s.has('recovered')) {
+      // Unmask: the arrow points from the masked point BACK to the recovered share.
+      drawMaskVector(run.pA, run.X, 'undo')
+    } else if (s.has('maskA') && s.has('pA')) {
+      // Mask: the arrow points from the raw share to the masked point.
+      drawMaskVector(run.X, run.pA, 'add')
     }
     if (s.has('X')) svg.append(node(run.X, 'x', 'X = x·P'))
     if (s.has('pA')) svg.append(node(run.pA, 'pa', 'pA = X + w·M'))
@@ -279,8 +284,13 @@ export function buildMaskAnimation(): HTMLElement {
     if (stepIdx < STEPS.length - 1) stepIdx++
     render()
   })
+  restart.addEventListener('click', () => {
+    stepIdx = 0
+    render()
+  })
   reroll.addEventListener('click', () => {
     run = fresh()
+    stepIdx = 0 // re-roll returns to step 1 so you watch the NEW share get masked
     render()
   })
 
@@ -306,6 +316,7 @@ export function buildMaskAnimation(): HTMLElement {
       counter,
       next,
       el('span', { class: 'spacer' }),
+      restart,
       reroll,
     ]),
   ])

@@ -1,10 +1,13 @@
 // Why M and N must be "nothing-up-my-sleeve" — and what breaks if they aren't.
 //
-// M and N are fixed public points. The security proof needs that NOBODY knows a
-// scalar relating them (no m with N = m·M). If an attacker picked M and N with a
-// known discrete-log link, they could unmask shares and recover the password.
-// So the RFC derives them by hashing a fixed, boring seed string — leaving no
-// room to embed a secret. This panel shows the real constants and states the rule.
+// M and N are fixed public points. The security proof requires that NOBODY knows
+// the discrete logarithm of M or N with respect to the base point P — i.e. no
+// scalar m* with M = m*·P (nor n* with N = n*·P) may be known to anyone. If a
+// party who chose the constants knew such a discrete log, a malicious server (or
+// MITM) could turn its single online password guess per session into an offline
+// dictionary attack — the guarantee SPAKE2 exists to provide would collapse. So
+// the RFC derives M and N by hashing a fixed, boring seed string (hash-to-curve),
+// which yields points whose discrete log to P is unknown even to the authors.
 
 import { el, hexChip } from './dom.ts'
 import {
@@ -50,10 +53,12 @@ export function buildConstantsPanel(): HTMLElement {
       el('span', { class: 'rule-tag', text: 'THE REQUIREMENT' }),
       el('p', {
         html:
-          'No one may know a scalar <code>m</code> with <code>N = m·M</code>. ' +
-          'The seed strings above (the P-256 object identifier plus a label) are fixed and public, ' +
-          'so the derivation is auditable and leaves nowhere to hide a trapdoor. ' +
-          'If someone <em>did</em> know such an <code>m</code>, they could strip the mask and recover the password — the protocol would break.',
+          'No one may know the discrete log of <code>M</code> or <code>N</code> with respect to the base point <code>P</code> — ' +
+          'no scalar <code>m*</code> with <code>M = m*·P</code> (nor <code>n*</code> with <code>N = n*·P</code>). ' +
+          'The seed strings above (the P-256 object identifier plus a label) are fixed and public, and hash-to-curve turns them into points ' +
+          'whose discrete log to <code>P</code> is unknown even to the spec authors — leaving nowhere to hide a trapdoor. ' +
+          'If someone <em>did</em> know such a discrete log, a malicious server or man-in-the-middle could convert its one online guess ' +
+          'per session into an unlimited <em>offline</em> dictionary attack on the password.',
       }),
     ]),
     el('p', {

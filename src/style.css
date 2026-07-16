@@ -345,7 +345,7 @@ body {
 }
 
 /* ---- hex chips --------------------------------------------------------- */
-.hex {
+#app .hex {
   font-family: ui-monospace, 'SFMono-Regular', 'Cascadia Code', Menlo, Consolas,
     monospace;
   font-size: 0.82rem;
@@ -354,12 +354,34 @@ body {
   border-radius: 6px;
   padding: 0.15rem 0.45rem;
   color: var(--text);
-  cursor: help;
+  cursor: pointer;
   word-break: break-all;
+  text-align: left;
+  line-height: 1.35;
 }
-.hex:focus {
+#app .hex:hover {
+  border-color: var(--accent-text);
+}
+#app .hex.copied {
+  color: var(--ok-text);
+  border-color: var(--ok);
+}
+#app .hex:focus-visible {
   outline: 2px solid var(--accent-text);
   outline-offset: 1px;
+}
+
+/* visually-hidden but available to assistive tech */
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
 }
 
 /* ---- buttons ----------------------------------------------------------- */
@@ -886,11 +908,6 @@ body {
   width: 12rem;
   background: var(--surface-2);
 }
-.sr-head {
-  height: 0;
-  padding: 0 !important;
-  border: 0 !important;
-}
 .cmp-name {
   display: block;
   font-size: 1rem;
@@ -962,6 +979,261 @@ td.is-good {
   flex-direction: column;
   gap: 0.35rem;
   color: var(--text-dim);
+}
+
+/* ---- in-page KAT badge ------------------------------------------------- */
+.kat {
+  margin-top: 1.1rem;
+}
+.kat-badge {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.6rem;
+  border-radius: 10px;
+  padding: 0.75rem 0.95rem;
+  font-size: 0.92rem;
+}
+.kat-badge.ok {
+  background: var(--ok-fill);
+  color: var(--ok-ink);
+}
+.kat-badge.bad {
+  background: var(--alarm-fill);
+  color: var(--alarm-ink);
+}
+.kat-badge-icon {
+  font-weight: 800;
+  font-size: 1.1rem;
+}
+.kat-details {
+  margin-top: 0.6rem;
+}
+.kat-details > summary {
+  cursor: pointer;
+  font-size: 0.9rem;
+  color: var(--accent-text);
+  padding: 0.3rem 0;
+}
+.kat-details > summary:focus-visible {
+  outline: 2px solid var(--accent-text);
+  outline-offset: 2px;
+}
+.kat-rows {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+  margin-top: 0.5rem;
+}
+.kat-row {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+  font-size: 0.85rem;
+}
+.kat-row.ok .kat-icon {
+  color: var(--ok-text);
+  font-weight: 800;
+}
+.kat-row.bad .kat-icon {
+  color: var(--alarm-text);
+  font-weight: 800;
+}
+.kat-field {
+  min-width: 13rem;
+  color: var(--text-dim);
+}
+.kat-tag {
+  font-size: 0.76rem;
+  color: var(--text-muted);
+}
+.kat-note {
+  margin: 0.7rem 0 0;
+  font-size: 0.82rem;
+  color: var(--text-muted);
+}
+
+/* ---- good-day panel ---------------------------------------------------- */
+.goodday-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(18rem, 1fr));
+  gap: 1rem;
+  margin-top: 1rem;
+}
+.goodday-col {
+  background: var(--surface-2);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 0.9rem 1rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.7rem;
+}
+.goodday-sub {
+  margin: 0;
+  font-size: 0.85rem;
+  color: var(--text-muted);
+}
+.wire {
+  display: flex;
+  flex-direction: column;
+  gap: 0.55rem;
+}
+.wire-row {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  background: var(--surface-3);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 0.5rem 0.65rem;
+}
+.wire-head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 0.5rem;
+}
+.wire-label {
+  font-size: 0.82rem;
+  font-weight: 600;
+  color: var(--accent-text);
+}
+.wire-size {
+  font-size: 0.72rem;
+  color: var(--text-muted);
+}
+.wire-hint {
+  font-size: 0.76rem;
+  color: var(--text-dim);
+}
+.agree {
+  display: flex;
+  align-items: center;
+  gap: 0.45rem;
+  padding: 0.5rem 0.7rem;
+  border-radius: 8px;
+  font-size: 0.85rem;
+}
+.agree.ok {
+  background: var(--ok-fill);
+  color: var(--ok-ink);
+}
+.agree.bad {
+  background: var(--alarm-fill);
+  color: var(--alarm-ink);
+}
+.agree-icon {
+  font-weight: 800;
+}
+.sess-key {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+.sess-label {
+  font-size: 0.76rem;
+  color: var(--text-muted);
+}
+.goodday-takeaway {
+  margin-top: 1rem;
+  border: 1px solid var(--accent);
+  background: color-mix(in oklab, var(--accent) 8%, transparent);
+  border-radius: 10px;
+  padding: 0.85rem 1rem;
+}
+.takeaway-tag {
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  font-size: 0.72rem;
+  color: var(--accent-text);
+}
+.goodday-takeaway p {
+  margin: 0.4rem 0 0;
+  font-size: 0.92rem;
+}
+.goodday-takeaway code {
+  font-family: ui-monospace, monospace;
+  background: var(--surface-3);
+  padding: 0.05rem 0.3rem;
+  border-radius: 4px;
+  font-size: 0.85rem;
+}
+
+/* ---- expert progressive-disclosure ------------------------------------- */
+.expert-details {
+  margin-top: 0.3rem;
+  border-top: 1px solid var(--border);
+  padding-top: 0.5rem;
+}
+.expert-details > summary {
+  cursor: pointer;
+  font-size: 0.82rem;
+  color: var(--accent-text);
+  padding: 0.25rem 0;
+}
+.expert-details > summary:focus-visible {
+  outline: 2px solid var(--accent-text);
+  outline-offset: 2px;
+}
+.expert-body {
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+  margin-top: 0.5rem;
+}
+.expert-field {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+.expert-kv {
+  flex-direction: row;
+  align-items: center;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+}
+.expert-label {
+  font-size: 0.74rem;
+  color: var(--text-muted);
+}
+.tt-dump {
+  max-height: 8rem;
+  overflow: auto;
+  background: var(--surface-3);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 0.5rem 0.6rem;
+}
+.tt-dump:focus-visible {
+  outline: 2px solid var(--accent-text);
+  outline-offset: 1px;
+}
+.tt-dump code {
+  font-family: ui-monospace, monospace;
+  font-size: 0.72rem;
+  color: var(--text-dim);
+  word-break: break-all;
+}
+
+/* ---- compromise: stolen state + nothing-to-crack ----------------------- */
+.compromise-col.is-stolen {
+  border-color: var(--alarm);
+  box-shadow: inset 3px 0 0 var(--alarm);
+}
+.nothing-to-crack {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  border: 1px dashed var(--border-strong);
+  border-radius: 8px;
+  padding: 0.6rem 0.75rem;
+  font-size: 0.85rem;
+  color: var(--text-dim);
+}
+.ntc-icon {
+  color: var(--text-muted);
+  font-weight: 800;
 }
 
 /* ---- footer ------------------------------------------------------------ */

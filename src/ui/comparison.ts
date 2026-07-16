@@ -61,7 +61,9 @@ function link(text: string, repo: string): HTMLAnchorElement {
 export function buildComparison(): HTMLElement {
   const table = el('table', { class: 'cmp-table' })
 
-  const headRow = el('tr', {}, [el('th', { scope: 'col', text: '' })])
+  const headRow = el('tr', {}, [
+    el('th', { scope: 'col' }, [el('span', { class: 'sr-only', text: 'Property' })]),
+  ])
   for (const c of COLS) {
     headRow.append(
       el('th', { scope: 'col' }, [
@@ -83,7 +85,6 @@ export function buildComparison(): HTMLElement {
   ]
 
   const body = el('tbody')
-  body.append(el('tr', {}, [el('th', { scope: 'row', class: 'sr-head' })]))
   const thead = el('thead', {}, [headRow])
   table.append(thead)
   for (const [label, get, clsGet] of rows) {
