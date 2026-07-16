@@ -5,3 +5,8 @@ playwright-report/
 test-results/
 .DS_Store
 *.local
+
+# build brief / template inputs — not part of the shipped repo
+CRYPTO-LAB-TEMPLATE.md
+prompt.txt
+kickoff-prompt.txt
