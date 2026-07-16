@@ -1,0 +1,20 @@
+NEW DEMO BRIEF
+- Repo name:         crypto-lab-spake-gate
+- Short name (H1):   SPAKE Gate
+- Subtitle:          SPAKE2 & SPAKE2+ · RFC 9382 · RFC 9383
+- One-liner:         Balanced versus augmented PAKE on the same password, showing exactly what the server keeps and what an attacker gets when they steal it.
+- Concept to teach:  Both parties knowing the password (balanced) and only the client knowing it (augmented) look identical from the outside — same handshake, same session key. The difference only appears when the server database leaks. SPAKE2's server holds the password; SPAKE2+'s server holds something that can verify but not impersonate.
+- Primitives/spec:   SPAKE2 (RFC 9382), SPAKE2+ (RFC 9383), P-256 / Edwards25519, the M and N public constants and why they're nothing-up-my-sleeve, PBKDF2/scrypt password stretching, Matter/Thread commissioning (SPAKE2+ in production)
+- Accent (--accent): #6D28D9
+- Favicon emoji:     🚪
+- In scope:
+    * Real SPAKE2 and SPAKE2+ over P-256, hand-rolled (the M/N masking is the teaching subject), RFC 9382 §5 and RFC 9383 test vectors as KATs.
+    * The M/N mask, stepped — the headline mechanism. SPAKE2's trick: blind your DH share by adding w·M (or w·N), where w comes from the password. An observer sees a uniformly random point. The peer, knowing w, subtracts it back out. Animate the point arithmetic (link ec-point-arithmetic, curve-lens). Show the observer's view: nothing.
+    * Why M and N are fixed constants and must be nothing-up-my-sleeve: if an attacker chose M with a known discrete log to N, the protocol breaks. Show the constants, show their derivation, state the requirement.
+    * THE server-compromise panel — the whole reason for the lab. One toggle: steal the server's database.
+        SPAKE2  → server stored w. Attacker has w. Attacker IS the client, forever. Full impersonation, no cracking needed.
+        SPAKE2+ → server stored w0 and L=w1·P. Attacker can verify but cannot impersonate without w1. Must run an OFFLINE DICTIONARY ATTACK on the password.
+      Run the offline attack, live, against real records. Show it succeeding on "password123" and failing on a strong one. Precision: SPAKE2+ does NOT prevent offline attack — it forces one. Say so.
+    * Three-way comparison table with what you already have: SPAKE2 (balanced) vs SPAKE2+ (augmented) vs OPAQUE (augmented, OPRF-based). What each stores, what breaks on compromise, registration vs authentication. Link opaque-gate and pake-gate for the deep dives.
+    * Matter/Thread panel: SPAKE2+ is what your smart-home devices run at commissioning. The QR code is the password.
+- Non-goals:         Not a PAKE survey (link pake-gate — SRP-6a, J-PAKE, CPace, Dragonfly live there). Not an OPAQUE rebuild (link opaque-gate). No Dragonblood side-channel (pake-gate owns it). No Matter commissioning protocol build-out.

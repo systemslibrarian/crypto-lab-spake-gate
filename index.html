@@ -1,0 +1,78 @@
+<!doctype html>
+<html lang="en" data-theme="dark">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <!-- Theme contract (anti-flash): set data-theme before any stylesheet. -->
+    <script>
+      (function () {
+        const saved = localStorage.getItem('theme')
+        document.documentElement.setAttribute('data-theme', saved ?? 'dark')
+      })()
+    </script>
+    <title>SPAKE Gate — crypto-lab</title>
+    <meta
+      name="description"
+      content="Interactive demo of SPAKE2 (RFC 9382) and SPAKE2+ (RFC 9383) over P-256, contrasting what a balanced and an augmented PAKE server leak on database compromise."
+    />
+    <link
+      rel="icon"
+      type="image/svg+xml"
+      href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🚪</text></svg>"
+    />
+  </head>
+  <body>
+    <a class="skip-link" href="#app">Skip to content</a>
+
+    <!-- Shared top bar (canonical contract): single banner, brand accent, the
+         one theme toggle. Flips data-theme on <html> and persists to
+         localStorage['theme']. Do not add a second bar or toggle elsewhere. -->
+    <header class="cl-topbar" role="banner">
+      <a class="cl-topbar-brand" href="https://crypto-lab.systemslibrarian.dev/">
+        <span class="cl-topbar-dot" aria-hidden="true"></span>
+        Crypto&nbsp;Lab
+      </a>
+      <div class="cl-topbar-actions">
+        <a
+          class="cl-topbar-link"
+          href="https://github.com/systemslibrarian/crypto-lab-spake-gate"
+          >GitHub</a
+        >
+        <button
+          id="cl-theme-toggle"
+          class="cl-theme-toggle"
+          type="button"
+          aria-label="Toggle light and dark theme"
+        >
+          <span class="cl-theme-icon" aria-hidden="true"></span>
+          <span class="cl-theme-text">Theme</span>
+        </button>
+      </div>
+    </header>
+
+    <div id="app"></div>
+
+    <footer class="scripture-footer">
+      <p>
+        So whether you eat or drink or whatever you do, do it all for the glory
+        of God. — 1 Corinthians 10:31
+      </p>
+    </footer>
+
+    <script type="module" src="/src/main.ts"></script>
+    <script>
+      // The one theme toggle (part of the shared bar contract).
+      ;(function () {
+        const btn = document.getElementById('cl-theme-toggle')
+        if (!btn) return
+        btn.addEventListener('click', function () {
+          const html = document.documentElement
+          const next =
+            html.getAttribute('data-theme') === 'light' ? 'dark' : 'light'
+          html.setAttribute('data-theme', next)
+          localStorage.setItem('theme', next)
+        })
+      })()
+    </script>
+  </body>
+</html>
