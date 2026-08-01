@@ -50,10 +50,15 @@ const COLS: Col[] = [
   },
 ]
 
+// Each demo is served from its OWN GitHub Pages site. The
+// crypto-lab.systemslibrarian.dev domain serves only the catalog page — per-demo
+// subpaths under it return 404, so sibling links must use the github.io form.
 function link(text: string, repo: string): HTMLAnchorElement {
   return el('a', {
     class: 'sib-link',
-    href: `https://crypto-lab.systemslibrarian.dev/${repo}/`,
+    href: `https://systemslibrarian.github.io/${repo}/`,
+    target: '_blank',
+    rel: 'noopener',
     text,
   }) as HTMLAnchorElement
 }

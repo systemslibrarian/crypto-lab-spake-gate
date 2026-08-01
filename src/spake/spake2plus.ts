@@ -82,6 +82,31 @@ export function spake2PlusRegister(w0: bigint, w1: bigint): Spake2PlusRecord {
   return { w0, L: mul(P, w1) }
 }
 
+export interface Spake2PlusSchedule {
+  Kmain: Uint8Array
+  KconfirmP: Uint8Array
+  KconfirmV: Uint8Array
+  Kshared: Uint8Array
+}
+
+/**
+ * The SPAKE2+ key schedule (RFC 9383 §3.4):
+ *   K_main = Hash(TT)
+ *   K_confirmP ‖ K_confirmV = KDF(nil, K_main, "ConfirmationKeys")
+ *   K_shared               = KDF(nil, K_main, "SharedKey")
+ * Shared by the honest run and by the attack code, so the two can never drift.
+ */
+export function spake2PlusSchedule(TT: Uint8Array): Spake2PlusSchedule {
+  const Kmain = sha256Bytes(TT)
+  const kc = hkdfExpandNoSalt(Kmain, 'ConfirmationKeys', 64)
+  return {
+    Kmain,
+    KconfirmP: kc.slice(0, 32),
+    KconfirmV: kc.slice(32, 64),
+    Kshared: hkdfExpandNoSalt(Kmain, 'SharedKey', 32),
+  }
+}
+
 /** Build the SPAKE2+ transcript TT (RFC 9383 §3.3). */
 export function spake2PlusTranscript(
   context: string,
@@ -142,11 +167,7 @@ export function spake2PlusRun(input: Spake2PlusInputs): Spake2PlusResult {
     Vprover,
     w0,
   )
-  const Kmain = sha256Bytes(TT)
-  const kc = hkdfExpandNoSalt(Kmain, 'ConfirmationKeys', 64)
-  const KconfirmP = kc.slice(0, 32)
-  const KconfirmV = kc.slice(32, 64)
-  const Kshared = hkdfExpandNoSalt(Kmain, 'SharedKey', 32)
+  const { Kmain, KconfirmP, KconfirmV, Kshared } = spake2PlusSchedule(TT)
   const confirmP = hmacSha256(KconfirmP, encodePoint(shareV))
   const confirmV = hmacSha256(KconfirmV, encodePoint(shareP))
 

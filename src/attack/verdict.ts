@@ -31,8 +31,31 @@ export interface SeparatedOutcome {
   verdict: SecurityVerdict
 }
 
-/** SPAKE2 database leak: attacker holds w and logs in with no cracking. */
-export function spake2LeakOutcome(): SeparatedOutcome {
+/**
+ * SPAKE2 database leak: attacker holds w and logs in with no cracking.
+ *
+ * `accepted` MUST be the real return value of the honest verifier's
+ * confirmation-MAC comparison (offline.ts `spake2ImpersonateWithStolenW`), not a
+ * constant. If the MAC ever failed to verify, this banner has to say so — a
+ * verdict that reads the same either way is decoration, not a result.
+ */
+export function spake2LeakOutcome(accepted: boolean): SeparatedOutcome {
+  if (!accepted) {
+    return {
+      crypto: {
+        state: 'invalid',
+        label: 'Handshake rejected',
+        detail:
+          'The verifier recomputed the client confirmation MAC over the received share and it did NOT match. The forged login was refused.',
+      },
+      verdict: {
+        state: 'secure',
+        label: 'NOT IMPERSONATED',
+        detail:
+          'The stolen w did not open the account. In SPAKE2 this should never happen for a correctly-stolen record — seeing it here means the protocol code on this page is broken, not that SPAKE2 is safe.',
+      },
+    }
+  }
   return {
     crypto: {
       state: 'valid',
@@ -67,13 +90,42 @@ export function spake2PlusLeakOutcome(): SeparatedOutcome {
   }
 }
 
-/** SPAKE2+ leak where the offline dictionary attack SUCCEEDED (weak password). */
-export function spake2PlusCrackedOutcome(password: string): SeparatedOutcome {
+/**
+ * SPAKE2+ leak where the offline dictionary attack SUCCEEDED (weak password).
+ *
+ * `impersonates` MUST be the real result of `recoveredKeyImpersonates` — the
+ * check that w1'·P equals the stolen L — and `handshakeAccepted` the real result
+ * of running the client side with the recovered halves against the honest
+ * verifier. Recovering a password is not the same claim as being able to log in;
+ * the banner only gets to say IMPERSONATED when both actually held.
+ */
+export function spake2PlusCrackedOutcome(
+  password: string,
+  impersonates: boolean,
+  handshakeAccepted: boolean,
+): SeparatedOutcome {
+  if (!impersonates || !handshakeAccepted) {
+    return {
+      crypto: {
+        state: 'invalid',
+        label: 'Forged handshake rejected',
+        detail: !impersonates
+          ? `A candidate matched the stolen w0, but the recovered w1 does not reconstruct the stored L (w1·P ≠ L), so it is not the client's key.`
+          : `The recovered w1 reconstructs L, but the verifier still rejected the forged login's confirmation MAC.`,
+      },
+      verdict: {
+        state: 'degraded',
+        label: 'NOT IMPERSONATED',
+        detail:
+          'The dictionary produced a hit that did not turn into a login. For a genuinely-cracked password both checks pass; seeing this means the page’s own code disagrees with itself.',
+      },
+    }
+  }
   return {
     crypto: {
       state: 'valid',
       label: 'Handshake valid',
-      detail: `After recovering w1 by cracking "${password}", the attacker can run the client side. The MAC verifies.`,
+      detail: `After recovering w1 by cracking "${password}", the attacker ran the client side against the honest verifier and the confirmation MAC verified.`,
     },
     verdict: {
       state: 'compromised',

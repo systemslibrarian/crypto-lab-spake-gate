@@ -23,7 +23,7 @@ The SPAKE2 and SPAKE2+ logic is **hand-rolled** over real P-256 (the elliptic-cu
 ## Exhibits
 
 1. **The M / N mask, stepped** — the headline mechanism. Watch a real Diffie–Hellman share `X = x·P` get blinded to `pA = X + w·M`, see the *observer's view* (a uniformly random point that leaks nothing), then watch the peer subtract `w·M` back off and both sides land on the same key `K` (compared byte-for-byte).
-2. **Why M and N are nothing-up-my-sleeve** — the two fixed constants, their derivation seeds, and the exact requirement: no one may know a scalar `m` with `N = m·M`, or the mask can be stripped.
+2. **Why M and N are nothing-up-my-sleeve** — the two fixed constants, their derivation seeds, and the exact requirement: nobody may know the discrete log of `M` or `N` with respect to the base point `P` (no scalar `m*` with `M = m*·P`, no `n*` with `N = n*·P`). RFC 9382 §7 puts it as "the generation methods specified in this document are designed to eliminate concerns related to knowing discrete logs of M and N."
 3. **Steal the database** — register one password on a balanced server and an augmented one, steal both, and see what the thief can do. The **cryptographic result** and the **security verdict** are shown as two independent indicators: a forged-but-accepted login reads as **ALARM**, not green. Includes a **real offline dictionary attack** you run against the stolen SPAKE2+ record — it succeeds on `password123` and fails on a strong passphrase.
 4. **SPAKE2 vs SPAKE2+ vs OPAQUE** — a three-way table of what each server stores, what breaks on compromise, and how registration differs.
 5. **You already run this: Matter / Thread** — SPAKE2+ is what commissions your smart-home devices; the QR code is the password.
@@ -37,7 +37,7 @@ The SPAKE2 and SPAKE2+ logic is **hand-rolled** over real P-256 (the elliptic-cu
 
 ## Live Demo
 
-**https://crypto-lab.systemslibrarian.dev/crypto-lab-spake-gate/** (also served from GitHub Pages for this repo).
+**https://systemslibrarian.github.io/crypto-lab-spake-gate/**
 
 Type a password, steal both databases, and run the offline attack. Everything runs client-side; nothing is stored or transmitted.
 
@@ -68,17 +68,17 @@ Requires Node 18+. The a11y gate needs a Chromium browser: `npx playwright insta
 
 ## Related Demos
 
-- **[OPAQUE Gate](https://crypto-lab.systemslibrarian.dev/crypto-lab-opaque-gate/)** — the OPRF-based augmented aPAKE (RFC 9807).
-- **[PAKE Gate](https://crypto-lab.systemslibrarian.dev/crypto-lab-pake-gate/)** — the wider PAKE survey (SRP-6a, J-PAKE, CPace, Dragonfly, and the Dragonblood side-channel).
+- **[OPAQUE Gate](https://systemslibrarian.github.io/crypto-lab-opaque-gate/)** — the OPRF-based augmented aPAKE (RFC 9807).
+- **[PAKE Gate](https://systemslibrarian.github.io/crypto-lab-pake-gate/)** — the wider PAKE survey (SRP-6a, J-PAKE, CPace, Dragonfly, and the Dragonblood side-channel).
 - **EC Point Arithmetic / Curve Lens** — the elliptic-curve point operations underpinning the mask.
 
 ## Build & Verify
 
-- **15 tests** (Vitest), all passing:
+- **18 tests** (Vitest), all passing:
   - **10 known-answer tests** reproducing the RFC vectors bit-for-bit:
     - `src/spake/spake2.test.ts` — all **4** RFC 9382 Appendix B SPAKE2 vectors (shares, `K`, transcript, `Ke/Ka`, `KcA/KcB`, both confirmation MACs), plus the M/N constant check.
     - `src/spake/spake2plus.test.ts` — the RFC 9383 Appendix C SPAKE2+ vector (record `L`, shares, `Z`, `V`, transcript, `K_main`, confirmation keys, `K_shared`, both MACs).
-  - **5 attack tests** (`src/attack/offline.test.ts`): the offline dictionary attack cracks a weak password and fails on a strong one, the recovered `w1` genuinely reconstructs `L`, and a stolen SPAKE2 `w` is accepted by the real verifier while a wrong `w` is rejected.
+  - **8 attack tests** (`src/attack/offline.test.ts`): the offline dictionary attack cracks a weak password and fails on a strong one; the recovered `w1` genuinely reconstructs `L`; a forged SPAKE2+ login built from the cracked halves is accepted by an honest verifier holding only `(w0, L)` — and is **rejected** when `w1` is wrong even though `w0` is right; and a stolen SPAKE2 `w` is accepted by the real verifier while a wrong `w` is rejected.
 - **Accessibility gate:** `@axe-core/playwright` scans the production build for zero WCAG 2.1 A/AA violations in **both** themes; the GitHub Pages deploy is blocked if it fails.
 
 ## Performance

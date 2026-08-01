@@ -18,6 +18,9 @@ import {
   type Spake2PlusServerRecord,
 } from '../spake/password.ts'
 import { spake2Transcript, spake2Confirmations } from '../spake/spake2.ts'
+import { spake2PlusTranscript, spake2PlusSchedule } from '../spake/spake2plus.ts'
+import { encodePoint } from '../spake/group.ts'
+import { hmacSha256 } from '../spake/transcript.ts'
 
 // ---------------------------------------------------------------------------
 // SPAKE2 (balanced) — stolen w means instant impersonation, no cracking.
@@ -82,6 +85,8 @@ export interface OfflineAttackResult {
   password: string | null
   /** The recovered prover secret w1 (the impersonation key) — only if found. */
   recoveredW1: bigint | null
+  /** The re-derived w0 for the matching candidate — only if found. */
+  recoveredW0: bigint | null
   /** How many candidates were tested before stopping. */
   tried: number
   attempts: DictionaryAttempt[]
@@ -128,6 +133,7 @@ export function offlineDictionaryAttack(
         found: true,
         password: candidate,
         recoveredW1: w1,
+        recoveredW0: w0,
         tried: i + 1,
         attempts,
       }
@@ -138,6 +144,7 @@ export function offlineDictionaryAttack(
     found: false,
     password: null,
     recoveredW1: null,
+    recoveredW0: null,
     tried: dictionary.length,
     attempts,
   }
@@ -154,4 +161,68 @@ export function recoveredKeyImpersonates(
 ): boolean {
   const Lprime = mul(P, recoveredW1)
   return bytesEqual(Lprime.toRawBytes(false), record.L.toRawBytes(false))
+}
+
+/**
+ * Actually forge a SPAKE2+ login with cracked halves, against the honest
+ * verifier that holds only the stolen record (w0, L).
+ *
+ * Matching w0 and reconstructing L are necessary conditions; they are not the
+ * same statement as "the server accepts this login." So we run the handshake:
+ * the attacker plays the prover with (attackerW0, attackerW1); the verifier
+ * plays its own side from record.w0 and record.L and recomputes the prover's
+ * expected confirmP over the shareP it received. Wrong halves diverge in Z or V,
+ * the transcripts differ, and the MAC comparison fails.
+ */
+export function spake2PlusImpersonateWithRecoveredHalves(
+  record: Spake2PlusServerRecord,
+  attackerW0: bigint,
+  attackerW1: bigint,
+  context: string,
+  idProver: string,
+  idVerifier: string,
+  attackerX: bigint,
+  honestY: bigint,
+): boolean {
+  // Honest verifier's share, built from the record it stores.
+  const maskV = mul(N, record.w0)
+  const shareV = mul(P, honestY).add(maskV)
+
+  // Attacker's prover side, built from the cracked halves.
+  const attackerMaskP = mul(M, attackerW0)
+  const shareP = mul(P, attackerX).add(attackerMaskP)
+  const attackerUnmaskedV = shareV.subtract(mul(N, attackerW0))
+  const attackerTT = spake2PlusTranscript(
+    context,
+    idProver,
+    idVerifier,
+    shareP,
+    shareV,
+    mul(attackerUnmaskedV, attackerX), // Z
+    mul(attackerUnmaskedV, attackerW1), // V
+    attackerW0,
+  )
+  const attackerConfirmP = hmacSha256(
+    spake2PlusSchedule(attackerTT).KconfirmP,
+    encodePoint(shareV),
+  )
+
+  // Verifier: unmask with the w0 IT stores, and take V from the stored L.
+  const verifierUnmaskedP = shareP.subtract(mul(M, record.w0))
+  const verifierTT = spake2PlusTranscript(
+    context,
+    idProver,
+    idVerifier,
+    shareP,
+    shareV,
+    mul(verifierUnmaskedP, honestY), // Z
+    mul(record.L, honestY), // V = y·L
+    record.w0,
+  )
+  const expectConfirmP = hmacSha256(
+    spake2PlusSchedule(verifierTT).KconfirmP,
+    encodePoint(shareV),
+  )
+
+  return bytesEqual(attackerConfirmP, expectConfirmP)
 }

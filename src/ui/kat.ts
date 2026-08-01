@@ -96,7 +96,7 @@ export function buildKatPanel(): HTMLElement {
     el('div', { class: 'kat-rows' }, checks.map(verdictRow)),
     el('p', {
       class: 'kat-note',
-      text: 'These four run every page load. The full suite (all 4 RFC 9382 vectors, the RFC 9383 vector, and the attack tests — 15 in total) runs under `npm test` and in CI before deploy.',
+      text: 'These four run every page load. The full suite (all 4 RFC 9382 vectors, the RFC 9383 vector, and the attack tests — 18 in total) runs under `npm test` and in CI before deploy.',
     }),
   ])
 

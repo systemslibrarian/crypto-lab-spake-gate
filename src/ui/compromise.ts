@@ -24,6 +24,7 @@ import {
   offlineDictionaryAttack,
   recoveredKeyImpersonates,
   spake2ImpersonateWithStolenW,
+  spake2PlusImpersonateWithRecoveredHalves,
 } from '../attack/offline.ts'
 import {
   spake2LeakOutcome,
@@ -35,6 +36,8 @@ import {
 
 const ID_PROVER = 'client'
 const ID_VERIFIER = 'server'
+/** Application context bound into the forged SPAKE2+ transcript (RFC 9383 §3.3). */
+const ATTACK_CONTEXT = 'crypto-lab-spake-gate compromise panel'
 
 // A small, real common-password dictionary. The attacker grinds these.
 const DICTIONARY = [
@@ -222,7 +225,8 @@ export function buildCompromisePanel(): HTMLElement {
           text: `Attacker replays the protocol as the client with the stolen w. Verifier accepts: ${imp.handshakeAccepted ? 'yes' : 'no'}. Cracking needed: none.`,
         }),
       ]),
-      renderOutcome(spake2LeakOutcome()),
+      // The verdict is the verifier's own MAC comparison, not a caption.
+      renderOutcome(spake2LeakOutcome(imp.handshakeAccepted)),
       // Fill the balanced column's space with the lesson, not emptiness:
       el('div', { class: 'nothing-to-crack' }, [
         el('span', { class: 'ntc-icon', 'aria-hidden': 'true', text: '∎' }),
@@ -283,17 +287,35 @@ export function buildCompromisePanel(): HTMLElement {
       await sleep(stepDelay())
       if (attempt.matched) {
         matchedRow = row
-        // Confirm the recovered w1 truly impersonates: w1·P === stolen L.
+        // Two INDEPENDENT checks, both really run:
+        //   1. the recovered w1 reconstructs the stolen L (w1·P === L), and
+        //   2. a forged login built from the cracked halves is actually
+        //      ACCEPTED by an honest verifier holding only (w0, L).
+        // The verdict below is derived from both; it is not a caption.
         const impersonates = recoveredKeyImpersonates(single.recoveredW1!, record)
+        const forgedAccepted = spake2PlusImpersonateWithRecoveredHalves(
+          record,
+          single.recoveredW0!,
+          single.recoveredW1!,
+          ATTACK_CONTEXT,
+          ID_PROVER,
+          ID_VERIFIER,
+          randomScalar(),
+          randomScalar(),
+        )
         augmentedOutcome.textContent = ''
         augmentedOutcome.append(
           el('p', { class: 'attack-headline' }, [
             el('span', { 'aria-hidden': 'true', text: '→ ' }),
             el('span', {
-              text: `Recovered w1. It reconstructs the stored L (w1·P = L): ${impersonates ? 'confirmed' : 'no'}. The attacker can now impersonate the client.`,
+              text:
+                `Recovered w1. It reconstructs the stored L (w1·P = L): ${impersonates ? 'confirmed' : 'no'}. ` +
+                `A forged login built from the cracked halves was then run against an honest verifier holding only (w0, L) — accepted: ${forgedAccepted ? 'yes' : 'no'}.`,
             }),
           ]),
-          renderOutcome(spake2PlusCrackedOutcome(attempt.password)),
+          renderOutcome(
+            spake2PlusCrackedOutcome(attempt.password, impersonates, forgedAccepted),
+          ),
         )
         break
       }

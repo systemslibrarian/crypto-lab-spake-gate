@@ -13,6 +13,7 @@
 
 import { el, hexChip } from './dom.ts'
 import { spake2Run, type Spake2Result } from '../spake/spake2.ts'
+import { deriveSpake2W, DEMO_PBKDF2_ITERS } from '../spake/password.ts'
 import {
   randomScalar,
   encodePoint,
@@ -21,6 +22,24 @@ import {
 } from '../spake/group.ts'
 
 const VB = 320 // svg viewbox size
+
+// The mask scalar w really is a PBKDF2 image of a password, because step 2's
+// text says so. It is FIXED across re-rolls — a password does not change when
+// you start a new session; only the ephemerals x and y do.
+const DEMO_PASSWORD = 'correct-horse-battery-staple'
+let cachedW: bigint | null = null
+function maskScalar(): bigint {
+  if (cachedW === null) {
+    cachedW = deriveSpake2W(
+      DEMO_PASSWORD,
+      'client',
+      'server',
+      'mask-panel-salt',
+      DEMO_PBKDF2_ITERS,
+    )
+  }
+  return cachedW
+}
 
 interface Step {
   title: string
@@ -40,7 +59,7 @@ const STEPS: Step[] = [
   {
     title: '2 · She blinds it with the password',
     body:
-      'w is derived from the password. Alice adds the mask w·M to her share: pA = X + w·M. The addition is real point addition on P-256.',
+      'w is derived from the password (PBKDF2-SHA256 over “correct-horse-battery-staple”, reduced mod the group order). Alice adds the mask w·M to her share: pA = X + w·M. The addition is real point addition on P-256.',
     show: new Set(['X', 'maskA', 'pA']),
     observer: false,
   },
@@ -114,7 +133,7 @@ export function buildMaskAnimation(): HTMLElement {
     return spake2Run({
       idA: 'client',
       idB: 'server',
-      w: randomScalar(),
+      w: maskScalar(),
       x: randomScalar(),
       y: randomScalar(),
     })
@@ -146,7 +165,7 @@ export function buildMaskAnimation(): HTMLElement {
   const reroll = el('button', {
     class: 'btn',
     type: 'button',
-    text: '↻ Fresh randomness',
+    text: '↻ Fresh ephemerals (x, y)',
   })
 
   function render(): void {

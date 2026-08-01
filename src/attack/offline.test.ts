@@ -3,9 +3,11 @@ import {
   offlineDictionaryAttack,
   recoveredKeyImpersonates,
   spake2ImpersonateWithStolenW,
+  spake2PlusImpersonateWithRecoveredHalves,
 } from './offline.ts'
 import {
   deriveSpake2PlusRecord,
+  deriveSpake2PlusHalves,
   deriveSpake2W,
 } from '../spake/password.ts'
 
@@ -46,6 +48,44 @@ describe('SPAKE2+ offline dictionary attack (augmented)', () => {
     expect(res.password).toBe('qwerty')
     // Stops as soon as it matches — does not try 'dragon'.
     expect(seen).toEqual(['123456', 'letmein', 'password123', 'qwerty'])
+  })
+})
+
+describe('SPAKE2+ forged login with cracked halves (the verdict the UI prints)', () => {
+  const ctx = 'crypto-lab-spake-gate compromise panel'
+  const x = 0x1234567890abcdefn
+  const y = 0xfedcba0987654321n
+
+  it('an honest verifier holding only (w0, L) ACCEPTS the cracked halves', () => {
+    const record = deriveSpake2PlusRecord('password123', idP, idV, salt, ITERS)
+    const res = offlineDictionaryAttack(record, idP, idV, salt, DICT, ITERS)
+    expect(res.found).toBe(true)
+    expect(
+      spake2PlusImpersonateWithRecoveredHalves(
+        record, res.recoveredW0!, res.recoveredW1!, ctx, idP, idV, x, y,
+      ),
+    ).toBe(true)
+  })
+
+  it('REJECTS wrong halves — the acceptance check is genuine', () => {
+    const record = deriveSpake2PlusRecord('password123', idP, idV, salt, ITERS)
+    const wrong = deriveSpake2PlusHalves('letmein', idP, idV, salt, ITERS)
+    expect(
+      spake2PlusImpersonateWithRecoveredHalves(
+        record, wrong.w0, wrong.w1, ctx, idP, idV, x, y,
+      ),
+    ).toBe(false)
+  })
+
+  it('REJECTS the right w0 with a wrong w1 — L is load-bearing, not decoration', () => {
+    const record = deriveSpake2PlusRecord('password123', idP, idV, salt, ITERS)
+    const right = deriveSpake2PlusHalves('password123', idP, idV, salt, ITERS)
+    const wrong = deriveSpake2PlusHalves('letmein', idP, idV, salt, ITERS)
+    expect(
+      spake2PlusImpersonateWithRecoveredHalves(
+        record, right.w0, wrong.w1, ctx, idP, idV, x, y,
+      ),
+    ).toBe(false)
   })
 })
 
