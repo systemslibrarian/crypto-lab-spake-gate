@@ -19,6 +19,15 @@
   --surface-3: #262b37;
   --border: #333a49;
   --border-strong: #47506180;
+  /* Control boundaries only. .pw-input is filled with --surface-2, which sits
+     within 1.0-1.3:1 of the --surface / --surface-3 panels around it, so its
+     border is the sole boundary and WCAG 2.1 SC 1.4.11 requires 3:1.
+     --border-strong composites to ~#2b303c (1.44:1 best case) and is left as-is
+     because it also draws decorative rules (.scope-note, .curve-hint,
+     .observer-box), hence a separate token here. #6e7582 = 3.05:1 against the
+     tightest neighbour (--surface-3 #262b37), 3.39-4.10:1 on --surface-2 /
+     --surface / --bg. */
+  --border-control: #6e7582;
 
   --text: #eceef4;
   --text-dim: #c3c9d6; /* ~5.6:1 on --bg */
@@ -55,6 +64,9 @@
   --surface-3: #e7e9f2;
   --border: #d3d7e3;
   --border-strong: #b9bfd0;
+  /* 3.05:1 against the darkest light neighbour (--surface-3 #e7e9f2), 3.30:1 on
+     the --surface-2 fill and 3.69:1 on white --surface. */
+  --border-control: #818590;
 
   --text: #1a1d26;
   --text-dim: #3f4657; /* ~8:1 */
@@ -600,7 +612,7 @@ body {
   font-family: ui-monospace, monospace;
   padding: 0.55rem 0.75rem;
   border-radius: 8px;
-  border: 1px solid var(--border-strong);
+  border: 1px solid var(--border-control);
   background: var(--surface-2);
   color: var(--text);
 }
