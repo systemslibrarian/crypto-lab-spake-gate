@@ -31,11 +31,11 @@ export function buildConstantsPanel(): HTMLElement {
     el('div', { class: 'const-card' }, [
       el('h3', { class: 'const-name', text: name }),
       el('div', { class: 'const-field' }, [
-        el('span', { class: 'const-label', text: 'derived by hashing the seed' }),
+        el('span', { class: 'const-label', text: 'RFC hash-to-curve derivation seed (shown, not recomputed here)' }),
         el('code', { class: 'seed', text: seed }),
       ]),
       el('div', { class: 'const-field' }, [
-        el('span', { class: 'const-label', text: 'compressed point (from the RFC)' }),
+        el('span', { class: 'const-label', text: 'RFC compressed point loaded and curve-checked by this demo' }),
         hexChip(compressed, `${name} compressed`),
       ]),
       el('div', { class: 'const-field' }, [

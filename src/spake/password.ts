@@ -35,7 +35,7 @@ function pwInput(pw: string, idProver: string, idVerifier: string): Uint8Array {
 }
 
 /**
- * SPAKE2 (balanced): w = PBKDF2(pw, ...) mod p.
+ * SPAKE2 (balanced): w = PBKDF2(pw, ...) mod the P-256 group order.
  * A single scalar. This is exactly what a SPAKE2 server must store.
  */
 export function deriveSpake2W(
@@ -60,7 +60,8 @@ export interface Spake2PlusHalves {
 
 /**
  * SPAKE2+ (augmented) registration halves.
- * PBKDF2 output is split into w0s || w1s, each reduced mod p (RFC 9383 §3.2.1).
+ * PBKDF2 output is split into w0s || w1s, each reduced modulo the P-256 group
+ * order (RFC 9383 §3.2.1).
  * The server keeps w0 and L=w1·P; the client keeps w0 and w1.
  */
 export function deriveSpake2PlusHalves(
