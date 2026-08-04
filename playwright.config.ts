@@ -8,15 +8,15 @@ export default defineConfig({
   retries: process.env.CI ? 1 : 0,
   reporter: 'list',
   use: {
-    baseURL: 'http://localhost:4173/crypto-lab-spake-gate/',
+    baseURL: 'http://localhost:4670/crypto-lab-spake-gate/',
     colorScheme: 'dark',
   },
   webServer: {
     // Build before serving: `preview` only serves whatever is already in dist/,
     // so a failed build would leave the last good bundle on disk and the suite
     // would pass green against source that no longer compiles.
-    command: 'npm run build && npm run preview -- --port 4173 --strictPort',
-    url: 'http://localhost:4173/crypto-lab-spake-gate/',
+    command: 'npm run build && npm run preview -- --port 4670 --strictPort',
+    url: 'http://localhost:4670/crypto-lab-spake-gate/',
     reuseExistingServer: !process.env.CI,
   },
 })
