@@ -158,7 +158,12 @@ export function buildMaskAnimation(): HTMLElement {
     'aria-live': 'polite',
   })
 
-  const counter = el('span', { class: 'step-counter', 'aria-hidden': 'true' })
+  // NOT aria-hidden. "Step 3 of 5" is the only place this walkthrough states how
+  // many steps there are: the step title carries the position ("3 · …") but
+  // never the total, and the Back/Next buttons only reveal the ends by going
+  // disabled. Hiding it from the accessibility tree removed real information
+  // rather than a decorative glyph.
+  const counter = el('span', { class: 'step-counter' })
   const prev = el('button', { class: 'btn', type: 'button', text: '‹ Back' })
   const next = el('button', { class: 'btn btn-primary', type: 'button', text: 'Next ›' })
   const restart = el('button', { class: 'btn', type: 'button', text: '↺ Start over' })

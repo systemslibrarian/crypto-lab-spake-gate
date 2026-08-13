@@ -19,15 +19,29 @@
   --surface-3: #262b37;
   --border: #333a49;
   --border-strong: #47506180;
-  /* Control boundaries only. .pw-input is filled with --surface-2, which sits
-     within 1.0-1.3:1 of the --surface / --surface-3 panels around it, so its
-     border is the sole boundary and WCAG 2.1 SC 1.4.11 requires 3:1.
-     --border-strong composites to ~#2b303c (1.44:1 best case) and is left as-is
-     because it also draws decorative rules (.scope-note, .curve-hint,
-     .observer-box), hence a separate token here. #6e7582 = 3.05:1 against the
-     tightest neighbour (--surface-3 #262b37), 3.39-4.10:1 on --surface-2 /
-     --surface / --bg. */
+  /* EVERY control boundary, not just the text input. WCAG 2.1 SC 1.4.11 asks
+     3:1 of whatever delineates a control, and on this page nothing else does:
+     .pw-input, .btn and .chip-btn are filled with --surface-2 and the .hex chips
+     with --surface-3, all within 1.0-1.3:1 of the panels around them, so the
+     border IS the boundary.
+
+     This token used to be applied to .pw-input alone while every button and
+     every hex chip drew its edge from --border / --border-strong — which are
+     SURFACE dividers, measured 1.37:1 and 1.24:1 in dark, 1.65:1 and 1.19:1 in
+     light. Those two stay for decorative rules only (.scope-note, .curve-hint,
+     .observer-box, .nothing-to-crack), which is why this is a separate token.
+
+     #6e7582 = 3.06:1 against the tightest neighbour (--surface-3 #262b37),
+     3.39-4.10:1 on --surface-2 / --surface / --bg. */
   --border-control: #6e7582;
+  /* A solid-fill button carries its own boundary, but --accent-fill is only
+     3.05:1 on --surface and drops to 2.76:1 on the --surface-2 panels inside
+     .compromise-col — and to 2.21:1 in the :hover state, which is where a
+     visitor is the instant after clicking anything. So the solid buttons get a
+     drawn edge that clears 3:1 against BOTH their own fill and the darkest
+     panel they land on: 3.70:1 on --accent-fill, 4.61:1 on --accent (hover),
+     10.2:1 on --surface-2. */
+  --btn-solid-edge: #d5c9ff;
 
   --text: #eceef4;
   --text-dim: #c3c9d6; /* ~5.6:1 on --bg */
@@ -67,6 +81,11 @@
   /* 3.05:1 against the darkest light neighbour (--surface-3 #e7e9f2), 3.30:1 on
      the --surface-2 fill and 3.69:1 on white --surface. */
   --border-control: #818590;
+  /* The light --accent-fill already clears 3:1 on every surface it lands on
+     (7.10:1 on white, 6.36:1 on --surface-2), so this edge is for definition
+     rather than for the boundary; it still clears 8.97:1 on --alarm-fill and
+     10.9:1 on white. */
+  --btn-solid-edge: #4c1d95;
 
   --text: #1a1d26;
   --text-dim: #3f4657; /* ~8:1 */
@@ -85,7 +104,13 @@
   --warn: #b45309;
   --warn-fill: #fef3c7;
   --warn-ink: #78350f;
-  --warn-text: #b45309;
+  /* Darker than --warn, and deliberately so: this ink is measured against the
+     DARKEST surface it lands on, not against the page. .observer-tag paints it
+     on the --surface-3 fill of .observer-box, where #b45309 measured 4.15:1 —
+     under the 4.5:1 an 11.5px label needs, and the only state that shows it is
+     step 3 of the mask walkthrough. #9a4a08 is 5.16:1 there and 6.25:1 on the
+     white --surface where .scope-note-tag uses it. */
+  --warn-text: #9a4a08;
 
   --shadow: 0 1px 3px rgba(20, 25, 40, 0.1);
 }
@@ -289,7 +314,11 @@ body {
     monospace;
   font-size: 0.82rem;
   background: var(--surface-3);
-  border: 1px solid var(--border);
+  /* A hex chip is a real <button> that copies its value, and it is filled with
+     the same --surface-3 as the .wire-row / .store-box it usually sits in — so
+     this border is the whole of its boundary (SC 1.4.11). It drew --border,
+     a surface divider, at 1.24:1. */
+  border: 1px solid var(--border-control);
   border-radius: 6px;
   padding: 0.15rem 0.45rem;
   color: var(--text);
@@ -329,7 +358,11 @@ body {
   font: inherit;
   cursor: pointer;
   border-radius: 8px;
-  border: 1px solid var(--border-strong);
+  /* --border-control, not --border-strong: these buttons are filled with
+     --surface-2 and sit on --surface or --surface-2 panels 1.11:1 away, so the
+     border is the only thing that delineates them (SC 1.4.11). --border-strong
+     composited to 1.37:1 in dark and 1.65:1 in light. */
+  border: 1px solid var(--border-control);
   background: var(--surface-2);
   color: var(--text);
   padding: 0.5rem 0.9rem;
@@ -339,8 +372,7 @@ body {
   background: var(--surface-3);
 }
 #app .btn:focus-visible,
-#app .chip-btn:focus-visible,
-#app .cl-theme-toggle:focus-visible {
+#app .chip-btn:focus-visible {
   outline: 2px solid var(--accent-text);
   outline-offset: 2px;
 }
@@ -353,7 +385,7 @@ body {
 #app .btn-primary {
   background: var(--accent-fill);
   color: var(--accent-ink);
-  border-color: transparent;
+  border-color: var(--btn-solid-edge);
 }
 #app .btn-primary:hover {
   background: var(--accent);
@@ -361,7 +393,10 @@ body {
 #app .btn-danger {
   background: var(--alarm-fill);
   color: var(--alarm-ink);
-  border-color: transparent;
+  /* The alarm hue itself, so the edge stays part of the danger signal rather
+     than a neutral rule: 3.35:1 on the --alarm-fill it surrounds and 6.29:1 on
+     the card behind it. The fill alone was 1.87:1 in dark and 1.22:1 in light. */
+  border-color: var(--alarm);
   font-weight: 600;
 }
 #app .btn-danger.armed {
@@ -873,8 +908,13 @@ td.is-good {
   margin-top: 0.9rem;
   font-size: 0.9rem;
 }
+/* NOT `white-space: nowrap`. The longer sibling link — "the PAKE survey
+   (SRP-6a, J-PAKE, CPace, Dragonfly) ↗" — lays out 369px wide, so pinning it to
+   one line pushed the document to a 402px scrollWidth inside a 380px viewport:
+   a WCAG 1.4.10 reflow failure that no axe rule looks for. It wraps on spaces
+   like any other prose now. */
 .sib-link {
-  white-space: nowrap;
+  overflow-wrap: anywhere;
 }
 
 /* ---- matter ------------------------------------------------------------ */

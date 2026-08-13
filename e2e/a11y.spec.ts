@@ -1,70 +1,63 @@
-import AxeBuilder from '@axe-core/playwright'
-import { expect, test, type Page } from '@playwright/test'
+import { expect, test } from '@playwright/test';
+import {
+  boot,
+  driveAllStates,
+  expectBaselineNotStale,
+  NARROW,
+  reportCollected,
+  watchPageErrors,
+} from './gate';
 
-const TAGS = ['wcag2a', 'wcag2aa', 'wcag21a', 'wcag21aa']
+/**
+ * WCAG A/AA regression gate.
+ *
+ * The lab is driven along everything it teaches, and scanned after every step:
+ * the arrival state, where two real handshakes and four RFC known-answer checks
+ * have already run and every disclosure is shut; the skip link focused; the four
+ * live known-answer checks revealed through their own summary; a second honest
+ * login on fresh ephemerals; both full transcripts and key schedules opened, and
+ * one of their scrollers focused from the keyboard; the 1100ms "copied ✓" flash
+ * on a hex chip; all five steps of the M/N mask walkthrough, including step 3,
+ * the only state that reveals the eavesdropper panel, and step 5, the only one
+ * that renders the two-sided K comparison; then stepped back, restarted and
+ * re-rolled. Then the compromise panel down BOTH branches of the fork the lab
+ * exists to show: a strong password, where the dictionary is exhausted and the
+ * augmented record holds, and the shipped weak one, where it is cracked and both
+ * records end impersonable — with the Reset in between, and a hand-typed
+ * password after. Every one of those states is scanned in {dark, light} ×
+ * {1280px, 380px}.
+ *
+ * Clipboard permission is granted because `dom.ts`'s `hexChip` only repaints on
+ * a RESOLVED `navigator.clipboard.writeText` — without the grant the promise
+ * rejects into a silent `.catch(() => {})`, nothing changes on screen, and the
+ * drive would be asserting against a state the code never reached.
+ *
+ * See `gate.ts` for why nothing is injected into the page, why no panel is
+ * force-revealed, why the lab's defaults are asserted rather than assumed, and
+ * why `violations` is not the whole oracle.
+ */
 
-// Drive the live demo so every dynamic result region is present when axe scans:
-// steal the databases, run the offline attack to completion, and step the mask
-// animation to its final compute-both-sides panel.
-async function prepare(page: Page): Promise<void> {
-  await page.addStyleTag({
-    content: `*,*::before,*::after{animation:none!important;transition:none!important}`,
-  })
-  await page.evaluate(() => {
-    document.querySelectorAll('details').forEach((d) => ((d as HTMLDetailsElement).open = true))
-    document.querySelectorAll<HTMLElement>('[hidden],[role="tabpanel"]').forEach((el) => {
-      el.removeAttribute('hidden')
-      el.style.display = ''
-      el.classList.add('active', 'is-active', 'open')
-    })
-  })
+for (const theme of ['dark', 'light'] as const) {
+  test(`no WCAG A/AA violations in ${theme} theme`, async ({ page, context }) => {
+    test.setTimeout(900_000);
+    await context.grantPermissions(['clipboard-read', 'clipboard-write']);
+    const errors = watchPageErrors(page);
+    await boot(page, theme);
+    await driveAllStates(page, theme);
+    expect(errors, errors.join('\n')).toEqual([]);
+    expectBaselineNotStale();
+    reportCollected();
+  });
 
-  // Trigger the compromise flow explicitly (its labels don't match the generic sweep).
-  const steal = page.getByRole('button', { name: /steal both server databases/i })
-  if (await steal.count()) {
-    await steal.first().click().catch(() => {})
-    await page.waitForTimeout(150)
-  }
-  const attack = page.getByRole('button', { name: /run the offline dictionary attack/i })
-  if (await attack.count()) {
-    await attack.first().click().catch(() => {})
-    // Let the (short) real PBKDF2 grind + row rendering finish.
-    await page.waitForTimeout(2200)
-  }
-
-  // Step the mask animation to the last step so the K-comparison renders.
-  // The Next button disables itself at the final step — never wait on it.
-  const next = page.getByRole('button', { name: /^Next ›$/ })
-  for (let i = 0; i < 5; i++) {
-    if (!(await next.count())) break
-    if (await next.first().isDisabled()) break
-    await next.first().click({ timeout: 2000 }).catch(() => {})
-  }
-
-  await page.waitForTimeout(300)
+  test(`no WCAG A/AA violations in ${theme} theme at 380px`, async ({ page, context }) => {
+    test.setTimeout(900_000);
+    await context.grantPermissions(['clipboard-read', 'clipboard-write']);
+    const errors = watchPageErrors(page);
+    await page.setViewportSize(NARROW);
+    await boot(page, theme);
+    await driveAllStates(page, `${theme} @380px`);
+    expect(errors, errors.join('\n')).toEqual([]);
+    expectBaselineNotStale();
+    reportCollected();
+  });
 }
-
-async function scan(page: Page): Promise<void> {
-  const { violations } = await new AxeBuilder({ page }).withTags(TAGS).analyze()
-  expect(
-    violations.map((v) => ({
-      id: v.id,
-      impact: v.impact,
-      nodes: v.nodes.map((n) => n.target.join(' ')).slice(0, 5),
-    })),
-  ).toEqual([])
-}
-
-test('no WCAG A/AA violations — dark theme', async ({ page }) => {
-  await page.goto('.')
-  await prepare(page)
-  await scan(page)
-})
-
-test('no WCAG A/AA violations — light theme', async ({ page }) => {
-  await page.goto('.')
-  await page.locator('#cl-theme-toggle').click()
-  await expect(page.locator('html')).toHaveAttribute('data-theme', 'light')
-  await prepare(page)
-  await scan(page)
-})
