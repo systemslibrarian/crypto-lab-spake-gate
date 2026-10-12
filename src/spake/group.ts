@@ -7,15 +7,15 @@
 // transcript.ts) — the M/N blinding is the teaching subject, so it must be
 // inspectable, not hidden inside a dependency.
 
-import { p256 } from '@noble/curves/p256'
+import { p256 } from '@noble/curves/nist.js'
 
-export type Point = InstanceType<typeof p256.ProjectivePoint>
+export type Point = InstanceType<typeof p256.Point>
 
 /** The prime order of the P-256 group. Scalars live in [0, ORDER). */
-export const ORDER: bigint = p256.CURVE.n
+export const ORDER: bigint = p256.Point.Fn.ORDER
 
 /** The standard generator P of the P-256 group. */
-export const P: Point = p256.ProjectivePoint.BASE
+export const P: Point = p256.Point.BASE
 
 // ---------------------------------------------------------------------------
 // The M and N "nothing-up-my-sleeve" constants (RFC 9382 §6, reused by RFC 9383).
@@ -51,12 +51,12 @@ N.assertValidity()
 
 /** Decode a hex-encoded (compressed or uncompressed) point onto the curve. */
 export function decodePoint(hex: string): Point {
-  return p256.ProjectivePoint.fromHex(hex)
+  return p256.Point.fromHex(hex)
 }
 
 /** Encode a point as SEC1 uncompressed bytes (0x04 || X || Y), 65 bytes. */
 export function encodePoint(pt: Point): Uint8Array {
-  return pt.toRawBytes(false)
+  return pt.toBytes(false)
 }
 
 /** Multiply a point by a scalar (mod ORDER). Rejects the zero scalar. */

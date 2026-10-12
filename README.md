@@ -64,7 +64,7 @@ npm run build      # production build to dist/
 npm run test:a11y  # WCAG 2.1 AA gate (axe-core via Playwright), both themes
 ```
 
-Requires Node 18+. The a11y gate needs a Chromium browser: `npx playwright install chromium`.
+Requires Node 20.19+; CI uses Node 24. The a11y gate needs a Chromium browser: `npx playwright install chromium`.
 
 ## Related Demos
 
@@ -74,11 +74,12 @@ Requires Node 18+. The a11y gate needs a Chromium browser: `npx playwright insta
 
 ## Build & Verify
 
-- **18 tests** (Vitest), all passing:
+- **27 tests** (Vitest):
   - **10 known-answer tests** reproducing the RFC vectors bit-for-bit:
     - `src/spake/spake2.test.ts` — all **4** RFC 9382 Appendix B SPAKE2 vectors (shares, `K`, transcript, `Ke/Ka`, `KcA/KcB`, both confirmation MACs), plus the M/N constant check.
     - `src/spake/spake2plus.test.ts` — the RFC 9383 Appendix C SPAKE2+ vector (record `L`, shares, `Z`, `V`, transcript, `K_main`, confirmation keys, `K_shared`, both MACs).
   - **8 attack tests** (`src/attack/offline.test.ts`): the offline dictionary attack cracks a weak password and fails on a strong one; the recovered `w1` genuinely reconstructs `L`; a forged SPAKE2+ login built from the cracked halves is accepted by an honest verifier holding only `(w0, L)` — and is **rejected** when `w1` is wrong even though `w0` is right; and a stolen SPAKE2 `w` is accepted by the real verifier while a wrong `w` is rejected.
+  - **9 primitive compatibility controls** (`src/spake/primitive-compatibility.test.ts`): P-256 encoding against native ECDH, malformed/off-curve/infinity rejection, scalar boundaries, and SHA-256/HMAC/HKDF/PBKDF2 against Node's independent crypto provider. These controls supplement the published protocol vectors; they do not establish constant-time execution or production suitability.
 - **Accessibility gate:** `@axe-core/playwright` scans the production build for zero WCAG 2.1 A/AA violations in **both** themes; the GitHub Pages deploy is blocked if it fails.
 
 ## Performance
