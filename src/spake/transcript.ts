@@ -6,9 +6,9 @@
 // appear inside the transcript (w, w0) are encoded BIG-endian, padded to 32
 // bytes. Getting these two endiannesses right is the whole game for the KATs.
 
-import { sha256 } from '@noble/hashes/sha256'
-import { hmac } from '@noble/hashes/hmac'
-import { hkdf } from '@noble/hashes/hkdf'
+import { sha256 } from '@noble/hashes/sha2.js'
+import { hmac } from '@noble/hashes/hmac.js'
+import { hkdf } from '@noble/hashes/hkdf.js'
 import { concatBytes } from './group.ts'
 
 const enc = new TextEncoder()

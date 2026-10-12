@@ -160,7 +160,7 @@ export function recoveredKeyImpersonates(
   record: Spake2PlusServerRecord,
 ): boolean {
   const Lprime = mul(P, recoveredW1)
-  return bytesEqual(Lprime.toRawBytes(false), record.L.toRawBytes(false))
+  return bytesEqual(Lprime.toBytes(false), record.L.toBytes(false))
 }
 
 /**

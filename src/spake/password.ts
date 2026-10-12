@@ -13,8 +13,8 @@
 // dictionary attack faster for BOTH the demo and a real attacker — it does not
 // change what is being taught (which side can crack, and that it must).
 
-import { pbkdf2 } from '@noble/hashes/pbkdf2'
-import { sha256 } from '@noble/hashes/sha256'
+import { pbkdf2 } from '@noble/hashes/pbkdf2.js'
+import { sha256 } from '@noble/hashes/sha2.js'
 import { bytesToScalarMod, ORDER, mul, P, type Point } from './group.ts'
 import { lenLE, utf8 } from './transcript.ts'
 import { concatBytes } from './group.ts'
