@@ -16,7 +16,7 @@ import {
  * have already run and every disclosure is shut; the skip link focused; the four
  * live known-answer checks revealed through their own summary; a second honest
  * login on fresh ephemerals; both full transcripts and key schedules opened, and
- * one of their scrollers focused from the keyboard; the 1100ms "copied ✓" flash
+ * one of their scrollers focused from the keyboard; the 1100ms "copied" flash
  * on a hex chip; all five steps of the M/N mask walkthrough, including step 3,
  * the only state that reveals the eavesdropper panel, and step 5, the only one
  * that renders the two-sided K comparison; then stepped back, restarted and

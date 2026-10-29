@@ -859,11 +859,13 @@ export async function driveAllStates(page: Page, theme: string): Promise<void> {
   await focusByKeyboard(page, '.tt-dump >> nth=0');
   await scanAt('a transcript scroller focused from the keyboard');
 
-  // The 1100ms "copied ✓" flash — the only state a hex chip paints --ok-text.
+  // The 1100ms "copied" flash — the only state a hex chip paints --ok-text.
   const chip = page.locator('.goodday .hex').first();
   const chipText = (await chip.textContent()) ?? '';
   await chip.click();
-  await expect(chip).toHaveText('copied ✓');
+  // The tick is drawn by CSS now (see src/ui/dom.ts), so the element's TEXT
+  // is just the word; the chip still paints --ok-text in this state.
+  await expect(chip).toHaveText('copied');
   await expect(chip).toHaveClass(/\bcopied\b/);
   await scanAt('a hex chip flashing its copy confirmation');
   await expect(chip).toHaveText(chipText, { timeout: 5_000 });

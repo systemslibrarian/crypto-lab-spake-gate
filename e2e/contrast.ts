@@ -102,7 +102,7 @@ export interface ContrastFailure {
  *
  * There is no `within` narrowing parameter, deliberately. Nothing in this lab
  * paints a short-lived state that a whole-page pass could miss: the only
- * transient styling is `.hex.copied`, the 1100ms "copied ✓" flash on a hex
+ * transient styling is `.hex.copied`, the 1100ms "copied" flash on a hex
  * chip, and the gate scans it directly while it is up rather than sampling for
  * it. A parameter that no call site uses would be another lab's helper wearing
  * this lab's filename.

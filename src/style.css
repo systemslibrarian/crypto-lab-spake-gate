@@ -1249,3 +1249,7 @@ td.is-good {
     min-height: 44px;
   }
 }
+
+/* The copied tick, drawn here rather than written as DOM text. See the note in
+   src/ui/dom.ts: aria-hidden would not satisfy the rule. */
+.hex.copied::after { content: "\00A0\2713"; }

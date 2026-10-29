@@ -40,17 +40,26 @@ export function hexChip(hex: string, label?: string): HTMLElement {
     type: 'button',
     class: 'hex',
     title: `${hex}\n(click to copy)`,
-    'aria-label': `Copy ${label ? label + ': ' : ''}${hex}`,
+    // The chip shows a TRUNCATED value, so the name has to open with exactly
+    // that: axe 4.14 compares the accessible name against what a SIGHTED user
+    // sees (label-content-name-mismatch, WCAG 2.5.3 Label in Name), and the
+    // full hex does not contain the elided form. The full value still follows,
+    // so a screen-reader user can hear all of it.
+    'aria-label': `${shown}: copy ${label ? label + ', ' : ''}${hex}`,
   })
   chip.textContent = shown
   let resetTimer: ReturnType<typeof setTimeout> | undefined
   chip.addEventListener('click', () => {
     const restore = () => {
       chip.textContent = shown
+      chip.setAttribute('aria-label', `${shown}: copy ${label ? label + ', ' : ''}${hex}`)
       chip.classList.remove('copied')
     }
     const ok = () => {
-      chip.textContent = 'copied ✓'
+      // The confirmation word replaces the visible value, so the name moves
+      // with it; the tick is drawn from CSS so it is not DOM text.
+      chip.textContent = 'copied'
+      chip.setAttribute('aria-label', `copied: ${label ? label + ', ' : ''}${hex}`)
       chip.classList.add('copied')
       if (resetTimer) clearTimeout(resetTimer)
       resetTimer = setTimeout(restore, 1100)
