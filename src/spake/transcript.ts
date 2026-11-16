@@ -2,7 +2,7 @@
 //
 // Both protocols hash a length-prefixed transcript of everything public, then
 // derive the session and confirmation keys from that hash. The length prefix is
-// an 8-byte LITTLE-endian integer (RFC 9382 §3.1, RFC 9383 §3.3). Scalars that
+// an 8-byte LITTLE-endian integer (RFC 9382 §3.2, RFC 9383 §3.3). Scalars that
 // appear inside the transcript (w, w0) are encoded BIG-endian, padded to 32
 // bytes. Getting these two endiannesses right is the whole game for the KATs.
 

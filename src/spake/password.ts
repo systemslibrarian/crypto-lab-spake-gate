@@ -22,7 +22,7 @@ import { concatBytes } from './group.ts'
 /** Iterations used in-page. Low on purpose — see the file header. */
 export const DEMO_PBKDF2_ITERS = 2000
 
-/** Length-prefixed password + identities, per RFC 9383 §3.2.1. */
+/** Length-prefixed password + identities, per RFC 9383 §3.2. */
 function pwInput(pw: string, idProver: string, idVerifier: string): Uint8Array {
   return concatBytes(
     lenLE(utf8(pw).length),
@@ -61,7 +61,7 @@ export interface Spake2PlusHalves {
 /**
  * SPAKE2+ (augmented) registration halves.
  * PBKDF2 output is split into w0s || w1s, each reduced modulo the P-256 group
- * order (RFC 9383 §3.2.1).
+ * order (RFC 9383 §3.2).
  * The server keeps w0 and L=w1·P; the client keeps w0 and w1.
  */
 export function deriveSpake2PlusHalves(
