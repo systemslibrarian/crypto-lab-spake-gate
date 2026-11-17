@@ -28,6 +28,7 @@ it('the page note and the README agree, and each total is the sum of its parts',
     knownAnswer: /(\d+) known-answer tests/.exec(note!)?.[1],
     attack: /(\d+) attack tests/.exec(note!)?.[1],
     controls: /(\d+) primitive-compatibility controls/.exec(note!)?.[1],
+    audits: /(\d+) library-audit checks/.exec(note!)?.[1],
     meta: /(\d+) check that these counts are the real ones/.exec(note!)?.[1],
   };
   for (const [name, value] of Object.entries(parts)) {
@@ -42,14 +43,16 @@ it('the page note and the README agree, and each total is the sum of its parts',
   // The README states the same total and the same breakdown.
   const readmeTotal = Number(/\*\*(\d+) tests\*\* \(Vitest\)/.exec(readme)?.[1]);
   expect(readmeTotal, 'the README total matches the page').toBe(noteTotal);
-  const readmeParts = /— (\d+) known-answer \+ (\d+) attack \+ (\d+) primitive controls \+ (\d+) count check/.exec(
-    readme,
-  );
+  const readmeParts =
+    /— (\d+) known-answer \+ (\d+) attack \+ (\d+) primitive controls \+ (\d+) audit checks \+ (\d+) count check/.exec(
+      readme,
+    );
   expect(readmeParts, 'the README prints its breakdown').not.toBeNull();
-  expect(readmeParts!.slice(1, 5)).toEqual([
+  expect(readmeParts!.slice(1, 6)).toEqual([
     parts.knownAnswer,
     parts.attack,
     parts.controls,
+    parts.audits,
     parts.meta,
   ]);
 

@@ -68,7 +68,7 @@ function jargon(term: string, def: string): HTMLElement {
 const scoping = el('section', { id: 'scope', class: 'card scoping-card', 'aria-labelledby': 'scope-h' }, [
   el('h2', { id: 'scope-h', class: 'section-title', text: 'Honest scope' }),
   el('ul', { class: 'scoping-list', role: 'list' }, [
-    el('li', { role: 'listitem', html: '<strong>Real crypto.</strong> SPAKE2 and SPAKE2+ are hand-rolled over real P-256 (via the audited @noble/curves group ops) and pass the RFC 9382 and RFC 9383 known-answer test vectors bit-for-bit.' }),
+    el('li', { role: 'listitem', html: '<strong>Real crypto.</strong> SPAKE2 and SPAKE2+ are hand-rolled over real P-256 (group ops via @noble/curves, pinned at ^2.4.0 — later than its latest audit, “at version 2.3.0, in Aug 2026, by Trail of Bits”) and pass the RFC 9382 and RFC 9383 known-answer test vectors bit-for-bit.' }),
     el('li', { role: 'listitem', html: '<strong>Not production.</strong> This is a teaching demo. Everything runs in your browser tab, in memory; nothing is persisted or sent anywhere.' }),
     el('li', { role: 'listitem', html: '<strong>What’s simplified.</strong> The PBKDF2 iteration count is deliberately low so the offline attack visibly runs in a tab. A real deployment uses a per-record salt and far more iterations — which slows the attacker too, but does not change which side can be impersonated.' }),
     el('li', { role: 'listitem', html: '<strong>What it does NOT prove.</strong> It does not prove SPAKE2+ (or OPAQUE) makes leaks harmless — a weak password still falls to offline guessing. Augmentation buys work, not immunity.' }),

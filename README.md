@@ -18,7 +18,7 @@ On a good day the two are indistinguishable — same handshake, same session key
 
 **Precision that matters:** SPAKE2+ does **not** prevent an offline attack — it *forces* one. Augmentation buys work, not immunity.
 
-The SPAKE2 and SPAKE2+ logic is **hand-rolled** over real P-256 (the elliptic-curve group and hash primitives come from the audited [`@noble/curves`](https://github.com/paulmillr/noble-curves) / `@noble/hashes`). The M/N masking — the actual teaching subject — is written out in full so you can read it. **This is a teaching demo, not production crypto.**
+The SPAKE2 and SPAKE2+ logic is **hand-rolled** over real P-256 (the elliptic-curve group and hash primitives come from [`@noble/curves`](https://github.com/paulmillr/noble-curves) and `@noble/hashes`, pinned at `^2.4.0` — later than either audit: curves records "at version 2.3.0, in Aug 2026, by [Trail of Bits]" and hashes "at version 1.0.0, in Jan 2022, independently, by [Cure53]", so the RFC 9382 and RFC 9383 vectors below are the check that does not rest on an audit). The M/N masking — the actual teaching subject — is written out in full so you can read it. **This is a teaching demo, not production crypto.**
 
 ## Exhibits
 
@@ -74,7 +74,7 @@ Requires Node 20.19+; CI uses Node 24. The a11y gate needs a Chromium browser: `
 
 ## Build & Verify
 
-- **28 tests** (Vitest) — 10 known-answer + 8 attack + 9 primitive controls + 1 count check:
+- **31 tests** (Vitest) — 10 known-answer + 8 attack + 9 primitive controls + 3 audit checks + 1 count check:
   - **10 known-answer tests** reproducing the RFC vectors bit-for-bit:
     - `src/spake/spake2.test.ts` — all **4** RFC 9382 Appendix B SPAKE2 vectors (shares, `K`, transcript, `Ke/Ka`, `KcA/KcB`, both confirmation MACs), plus the M/N constant check.
     - `src/spake/spake2plus.test.ts` — the RFC 9383 Appendix C SPAKE2+ vector (record `L`, shares, `Z`, `V`, transcript, `K_main`, confirmation keys, `K_shared`, both MACs).
